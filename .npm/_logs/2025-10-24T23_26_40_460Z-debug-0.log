@@ -1,0 +1,180 @@
+0 verbose cli /home/ubuntu/.nvm/versions/node/v22.13.0/bin/node /home/ubuntu/.nvm/versions/node/v22.13.0/bin/npm
+1 info using npm@10.9.2
+2 info using node@v22.13.0
+3 silly config load:file:/home/ubuntu/.nvm/versions/node/v22.13.0/lib/node_modules/npm/npmrc
+4 silly config load:file:/home/ubuntu/.npmrc
+5 silly config load:file:/home/ubuntu/.nvm/versions/node/v22.13.0/etc/npmrc
+6 verbose title npm install @supabase/supabase-js
+7 verbose argv "install" "@supabase/supabase-js"
+8 verbose logfile logs-max:10 dir:/home/ubuntu/.npm/_logs/2025-10-24T23_26_40_460Z-
+9 verbose logfile /home/ubuntu/.npm/_logs/2025-10-24T23_26_40_460Z-debug-0.log
+10 silly logfile done cleaning log files
+11 silly packumentCache heap:2116812800 maxSize:529203200 maxEntrySize:264601600
+12 silly idealTree buildDeps
+13 silly fetch manifest @supabase/supabase-js@*
+14 silly packumentCache full:https://registry.npmjs.org/@supabase%2fsupabase-js cache-miss
+15 http fetch GET 200 https://registry.npmjs.org/@supabase%2fsupabase-js 219ms (cache miss)
+16 silly packumentCache full:https://registry.npmjs.org/@supabase%2fsupabase-js set size:undefined disposed:false
+17 silly placeDep ROOT @supabase/supabase-js@2.76.1 OK for:  want: *
+18 silly fetch manifest @supabase/auth-js@2.76.1
+19 silly packumentCache full:https://registry.npmjs.org/@supabase%2fauth-js cache-miss
+20 silly fetch manifest @supabase/node-fetch@2.6.15
+21 silly packumentCache full:https://registry.npmjs.org/@supabase%2fnode-fetch cache-miss
+22 silly fetch manifest @supabase/storage-js@2.76.1
+23 silly packumentCache full:https://registry.npmjs.org/@supabase%2fstorage-js cache-miss
+24 silly fetch manifest @supabase/realtime-js@2.76.1
+25 silly packumentCache full:https://registry.npmjs.org/@supabase%2frealtime-js cache-miss
+26 silly fetch manifest @supabase/functions-js@2.76.1
+27 silly packumentCache full:https://registry.npmjs.org/@supabase%2ffunctions-js cache-miss
+28 http fetch GET 200 https://registry.npmjs.org/@supabase%2fauth-js 62ms (cache miss)
+29 silly packumentCache full:https://registry.npmjs.org/@supabase%2fauth-js set size:undefined disposed:false
+30 silly fetch manifest @supabase/postgrest-js@2.76.1
+31 silly packumentCache full:https://registry.npmjs.org/@supabase%2fpostgrest-js cache-miss
+32 http fetch GET 200 https://registry.npmjs.org/@supabase%2ffunctions-js 77ms (cache miss)
+33 silly packumentCache full:https://registry.npmjs.org/@supabase%2ffunctions-js set size:undefined disposed:false
+34 http fetch GET 200 https://registry.npmjs.org/@supabase%2fnode-fetch 88ms (cache miss)
+35 silly packumentCache full:https://registry.npmjs.org/@supabase%2fnode-fetch set size:undefined disposed:false
+36 http fetch GET 200 https://registry.npmjs.org/@supabase%2frealtime-js 92ms (cache miss)
+37 silly packumentCache full:https://registry.npmjs.org/@supabase%2frealtime-js set size:undefined disposed:false
+38 http fetch GET 200 https://registry.npmjs.org/@supabase%2fstorage-js 118ms (cache miss)
+39 silly packumentCache full:https://registry.npmjs.org/@supabase%2fstorage-js set size:undefined disposed:false
+40 http fetch GET 200 https://registry.npmjs.org/@supabase%2fpostgrest-js 65ms (cache miss)
+41 silly packumentCache full:https://registry.npmjs.org/@supabase%2fpostgrest-js set size:undefined disposed:false
+42 silly placeDep ROOT @supabase/auth-js@2.76.1 OK for: @supabase/supabase-js@2.76.1 want: 2.76.1
+43 silly placeDep ROOT @supabase/functions-js@2.76.1 OK for: @supabase/supabase-js@2.76.1 want: 2.76.1
+44 silly placeDep ROOT @supabase/node-fetch@2.6.15 OK for: @supabase/supabase-js@2.76.1 want: 2.6.15
+45 silly placeDep ROOT @supabase/postgrest-js@2.76.1 OK for: @supabase/supabase-js@2.76.1 want: 2.76.1
+46 silly placeDep ROOT @supabase/realtime-js@2.76.1 OK for: @supabase/supabase-js@2.76.1 want: 2.76.1
+47 silly placeDep ROOT @supabase/storage-js@2.76.1 OK for: @supabase/supabase-js@2.76.1 want: 2.76.1
+48 silly fetch manifest tslib@2.8.1
+49 silly packumentCache full:https://registry.npmjs.org/tslib cache-miss
+50 silly fetch manifest tslib@2.8.1
+51 silly packumentCache full:https://registry.npmjs.org/tslib cache-miss
+52 silly fetch manifest whatwg-url@^5.0.0
+53 silly packumentCache full:https://registry.npmjs.org/whatwg-url cache-miss
+54 silly fetch manifest tslib@2.8.1
+55 silly packumentCache full:https://registry.npmjs.org/tslib cache-miss
+56 silly fetch manifest ws@^8.18.2
+57 silly packumentCache full:https://registry.npmjs.org/ws cache-miss
+58 http fetch GET 200 https://registry.npmjs.org/tslib 46ms (cache miss)
+59 silly packumentCache full:https://registry.npmjs.org/tslib set size:undefined disposed:false
+60 silly fetch manifest @types/ws@^8.18.1
+61 silly packumentCache full:https://registry.npmjs.org/@types%2fws cache-miss
+62 http fetch GET 200 https://registry.npmjs.org/tslib 48ms (cache miss)
+63 silly packumentCache full:https://registry.npmjs.org/tslib set size:undefined disposed:false
+64 silly fetch manifest @types/phoenix@^1.6.6
+65 silly packumentCache full:https://registry.npmjs.org/@types%2fphoenix cache-miss
+66 http fetch GET 200 https://registry.npmjs.org/tslib 52ms (cache miss)
+67 silly packumentCache full:https://registry.npmjs.org/tslib set size:undefined disposed:false
+68 http fetch GET 200 https://registry.npmjs.org/whatwg-url 54ms (cache miss)
+69 silly packumentCache full:https://registry.npmjs.org/whatwg-url set size:undefined disposed:false
+70 http fetch GET 200 https://registry.npmjs.org/ws 59ms (cache miss)
+71 silly packumentCache full:https://registry.npmjs.org/ws set size:undefined disposed:false
+72 http fetch GET 200 https://registry.npmjs.org/@types%2fws 37ms (cache miss)
+73 silly packumentCache full:https://registry.npmjs.org/@types%2fws set size:undefined disposed:false
+74 http fetch GET 200 https://registry.npmjs.org/@types%2fphoenix 40ms (cache miss)
+75 silly packumentCache full:https://registry.npmjs.org/@types%2fphoenix set size:undefined disposed:false
+76 silly placeDep ROOT tslib@2.8.1 OK for: @supabase/auth-js@2.76.1 want: 2.8.1
+77 silly placeDep ROOT whatwg-url@5.0.0 OK for: @supabase/node-fetch@2.6.15 want: ^5.0.0
+78 silly fetch manifest tr46@~0.0.3
+79 silly packumentCache full:https://registry.npmjs.org/tr46 cache-miss
+80 silly fetch manifest webidl-conversions@^3.0.0
+81 silly packumentCache full:https://registry.npmjs.org/webidl-conversions cache-miss
+82 http fetch GET 200 https://registry.npmjs.org/tr46 27ms (cache miss)
+83 silly packumentCache full:https://registry.npmjs.org/tr46 set size:undefined disposed:false
+84 http fetch GET 200 https://registry.npmjs.org/webidl-conversions 27ms (cache miss)
+85 silly packumentCache full:https://registry.npmjs.org/webidl-conversions set size:undefined disposed:false
+86 silly fetch manifest bufferutil@^4.0.1
+87 silly packumentCache full:https://registry.npmjs.org/bufferutil cache-miss
+88 http fetch GET 200 https://registry.npmjs.org/bufferutil 36ms (cache miss)
+89 silly packumentCache full:https://registry.npmjs.org/bufferutil set size:undefined disposed:false
+90 silly fetch manifest utf-8-validate@>=5.0.2
+91 silly packumentCache full:https://registry.npmjs.org/utf-8-validate cache-miss
+92 http fetch GET 200 https://registry.npmjs.org/utf-8-validate 25ms (cache miss)
+93 silly packumentCache full:https://registry.npmjs.org/utf-8-validate set size:undefined disposed:false
+94 silly placeDep ROOT @types/phoenix@1.6.6 OK for: @supabase/realtime-js@2.76.1 want: ^1.6.6
+95 silly placeDep ROOT @types/ws@8.18.1 OK for: @supabase/realtime-js@2.76.1 want: ^8.18.1
+96 silly placeDep ROOT ws@8.18.3 OK for: @supabase/realtime-js@2.76.1 want: ^8.18.2
+97 silly fetch manifest @types/node@*
+98 silly packumentCache full:https://registry.npmjs.org/@types%2fnode cache-miss
+99 http fetch GET 200 https://registry.npmjs.org/@types%2fnode 170ms (cache miss)
+100 silly packumentCache full:https://registry.npmjs.org/@types%2fnode set size:undefined disposed:false
+101 silly placeDep ROOT @types/node@24.9.1 OK for: @types/ws@8.18.1 want: *
+102 silly fetch manifest undici-types@~7.16.0
+103 silly packumentCache full:https://registry.npmjs.org/undici-types cache-miss
+104 http fetch GET 200 https://registry.npmjs.org/undici-types 31ms (cache miss)
+105 silly packumentCache full:https://registry.npmjs.org/undici-types set size:undefined disposed:false
+106 silly placeDep ROOT undici-types@7.16.0 OK for: @types/node@24.9.1 want: ~7.16.0
+107 silly placeDep ROOT tr46@0.0.3 OK for: whatwg-url@5.0.0 want: ~0.0.3
+108 silly placeDep ROOT webidl-conversions@3.0.1 OK for: whatwg-url@5.0.0 want: ^3.0.0
+109 silly reify moves {}
+110 http cache webidl-conversions@https://registry.npmjs.org/webidl-conversions/-/webidl-conversions-3.0.1.tgz 1ms (cache hit)
+111 http cache tr46@https://registry.npmjs.org/tr46/-/tr46-0.0.3.tgz 0ms (cache hit)
+112 http cache undici-types@https://registry.npmjs.org/undici-types/-/undici-types-7.16.0.tgz 0ms (cache hit)
+113 http cache @types/node@https://registry.npmjs.org/@types/node/-/node-24.9.1.tgz 0ms (cache hit)
+114 http cache ws@https://registry.npmjs.org/ws/-/ws-8.18.3.tgz 0ms (cache hit)
+115 http cache @types/ws@https://registry.npmjs.org/@types/ws/-/ws-8.18.1.tgz 0ms (cache hit)
+116 http cache whatwg-url@https://registry.npmjs.org/whatwg-url/-/whatwg-url-5.0.0.tgz 0ms (cache hit)
+117 http cache tslib@https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz 0ms (cache hit)
+118 http cache @supabase/storage-js@https://registry.npmjs.org/@supabase/storage-js/-/storage-js-2.76.1.tgz 0ms (cache hit)
+119 http cache @supabase/realtime-js@https://registry.npmjs.org/@supabase/realtime-js/-/realtime-js-2.76.1.tgz 0ms (cache hit)
+120 http cache @supabase/postgrest-js@https://registry.npmjs.org/@supabase/postgrest-js/-/postgrest-js-2.76.1.tgz 0ms (cache hit)
+121 http cache @supabase/node-fetch@https://registry.npmjs.org/@supabase/node-fetch/-/node-fetch-2.6.15.tgz 0ms (cache hit)
+122 http cache @types/phoenix@https://registry.npmjs.org/@types/phoenix/-/phoenix-1.6.6.tgz 0ms (cache hit)
+123 http cache @supabase/functions-js@https://registry.npmjs.org/@supabase/functions-js/-/functions-js-2.76.1.tgz 0ms (cache hit)
+124 http cache @supabase/supabase-js@https://registry.npmjs.org/@supabase/supabase-js/-/supabase-js-2.76.1.tgz 0ms (cache hit)
+125 http cache @supabase/auth-js@https://registry.npmjs.org/@supabase/auth-js/-/auth-js-2.76.1.tgz 0ms (cache hit)
+126 silly tarball no local data for webidl-conversions@https://registry.npmjs.org/webidl-conversions/-/webidl-conversions-3.0.1.tgz. Extracting by manifest.
+127 silly tarball no local data for tr46@https://registry.npmjs.org/tr46/-/tr46-0.0.3.tgz. Extracting by manifest.
+128 silly tarball no local data for undici-types@https://registry.npmjs.org/undici-types/-/undici-types-7.16.0.tgz. Extracting by manifest.
+129 silly tarball no local data for @types/node@https://registry.npmjs.org/@types/node/-/node-24.9.1.tgz. Extracting by manifest.
+130 silly tarball no local data for ws@https://registry.npmjs.org/ws/-/ws-8.18.3.tgz. Extracting by manifest.
+131 silly tarball no local data for @types/ws@https://registry.npmjs.org/@types/ws/-/ws-8.18.1.tgz. Extracting by manifest.
+132 silly tarball no local data for whatwg-url@https://registry.npmjs.org/whatwg-url/-/whatwg-url-5.0.0.tgz. Extracting by manifest.
+133 silly tarball no local data for tslib@https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz. Extracting by manifest.
+134 silly tarball no local data for @supabase/storage-js@https://registry.npmjs.org/@supabase/storage-js/-/storage-js-2.76.1.tgz. Extracting by manifest.
+135 silly tarball no local data for @supabase/realtime-js@https://registry.npmjs.org/@supabase/realtime-js/-/realtime-js-2.76.1.tgz. Extracting by manifest.
+136 silly tarball no local data for @supabase/postgrest-js@https://registry.npmjs.org/@supabase/postgrest-js/-/postgrest-js-2.76.1.tgz. Extracting by manifest.
+137 silly tarball no local data for @supabase/node-fetch@https://registry.npmjs.org/@supabase/node-fetch/-/node-fetch-2.6.15.tgz. Extracting by manifest.
+138 silly tarball no local data for @types/phoenix@https://registry.npmjs.org/@types/phoenix/-/phoenix-1.6.6.tgz. Extracting by manifest.
+139 silly tarball no local data for @supabase/functions-js@https://registry.npmjs.org/@supabase/functions-js/-/functions-js-2.76.1.tgz. Extracting by manifest.
+140 silly tarball no local data for @supabase/supabase-js@https://registry.npmjs.org/@supabase/supabase-js/-/supabase-js-2.76.1.tgz. Extracting by manifest.
+141 silly tarball no local data for @supabase/auth-js@https://registry.npmjs.org/@supabase/auth-js/-/auth-js-2.76.1.tgz. Extracting by manifest.
+142 http fetch GET 200 https://registry.npmjs.org/webidl-conversions/-/webidl-conversions-3.0.1.tgz 120ms (cache miss)
+143 http fetch GET 200 https://registry.npmjs.org/@types/phoenix/-/phoenix-1.6.6.tgz 135ms (cache miss)
+144 http fetch GET 200 https://registry.npmjs.org/tr46/-/tr46-0.0.3.tgz 158ms (cache miss)
+145 http fetch GET 200 https://registry.npmjs.org/ws/-/ws-8.18.3.tgz 163ms (cache miss)
+146 http fetch GET 200 https://registry.npmjs.org/whatwg-url/-/whatwg-url-5.0.0.tgz 167ms (cache miss)
+147 http fetch GET 200 https://registry.npmjs.org/tslib/-/tslib-2.8.1.tgz 176ms (cache miss)
+148 http fetch GET 200 https://registry.npmjs.org/undici-types/-/undici-types-7.16.0.tgz 189ms (cache miss)
+149 http fetch GET 200 https://registry.npmjs.org/@supabase/node-fetch/-/node-fetch-2.6.15.tgz 210ms (cache miss)
+150 http fetch GET 200 https://registry.npmjs.org/@supabase/functions-js/-/functions-js-2.76.1.tgz 264ms (cache miss)
+151 http fetch GET 200 https://registry.npmjs.org/@supabase/postgrest-js/-/postgrest-js-2.76.1.tgz 339ms (cache miss)
+152 http fetch GET 200 https://registry.npmjs.org/@supabase/supabase-js/-/supabase-js-2.76.1.tgz 341ms (cache miss)
+153 http fetch GET 200 https://registry.npmjs.org/@supabase/realtime-js/-/realtime-js-2.76.1.tgz 351ms (cache miss)
+154 http fetch GET 200 https://registry.npmjs.org/@types/node/-/node-24.9.1.tgz 368ms (cache miss)
+155 http fetch GET 200 https://registry.npmjs.org/@supabase/auth-js/-/auth-js-2.76.1.tgz 386ms (cache miss)
+156 http fetch GET 200 https://registry.npmjs.org/@supabase/storage-js/-/storage-js-2.76.1.tgz 395ms (cache miss)
+157 http fetch GET 200 https://registry.npmjs.org/@types/ws/-/ws-8.18.1.tgz 403ms (cache miss)
+158 silly ADD node_modules/webidl-conversions
+159 silly ADD node_modules/tr46
+160 silly ADD node_modules/undici-types
+161 silly ADD node_modules/@types/node
+162 silly ADD node_modules/ws
+163 silly ADD node_modules/@types/ws
+164 silly ADD node_modules/@types/phoenix
+165 silly ADD node_modules/whatwg-url
+166 silly ADD node_modules/tslib
+167 silly ADD node_modules/@supabase/storage-js
+168 silly ADD node_modules/@supabase/realtime-js
+169 silly ADD node_modules/@supabase/postgrest-js
+170 silly ADD node_modules/@supabase/node-fetch
+171 silly ADD node_modules/@supabase/functions-js
+172 silly ADD node_modules/@supabase/auth-js
+173 silly ADD node_modules/@supabase/supabase-js
+174 verbose cwd /home/ubuntu
+175 verbose os Linux 6.1.102
+176 verbose node v22.13.0
+177 verbose npm  v10.9.2
+178 verbose exit 0
+179 info ok

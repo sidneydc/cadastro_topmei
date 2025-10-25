@@ -1,0 +1,479 @@
+import React, { useState } from 'react';
+import { Mail, Lock, Eye, EyeOff, LogOut, Bell, Upload, CheckCircle, AlertCircle } from 'lucide-react';
+
+export default function App() {
+  const [logado, setLogado] = useState(false);
+  const [tipoUsuario, setTipoUsuario] = useState(null);
+  const [notificacoes, setNotificacoes] = useState([
+    { id: 1, tipo: 'erro', mensagem: 'RG rejeitado - Foto pouco legível', lida: false },
+    { id: 2, tipo: 'sucesso', mensagem: 'CPF aprovado com sucesso', lida: false }
+  ]);
+
+  if (!logado) {
+    return <TelaLogin setLogado={setLogado} setTipoUsuario={setTipoUsuario} />;
+  }
+
+  if (tipoUsuario === 'cliente') {
+    return <DashboardCliente setLogado={setLogado} notificacoes={notificacoes} setNotificacoes={setNotificacoes} />;
+  }
+
+  if (tipoUsuario === 'profissional') {
+    return <DashboardProfissional setLogado={setLogado} notificacoes={notificacoes} setNotificacoes={setNotificacoes} />;
+  }
+
+  return null;
+}
+
+function TelaLogin({ setLogado, setTipoUsuario }) {
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [erros, setErros] = useState({});
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    const novosErros = {};
+
+    if (!email) novosErros.email = 'E-mail é obrigatório';
+    if (!email.includes('@')) novosErros.email = 'E-mail inválido';
+    if (!senha || senha.length < 6) novosErros.senha = 'Senha inválida';
+
+    if (Object.keys(novosErros).length > 0) {
+      setErros(novosErros);
+      return;
+    }
+
+    if (email.includes('contador')) {
+      setTipoUsuario('profissional');
+      setLogado(true);
+    } else if (email.includes('joao')) {
+      setTipoUsuario('cliente');
+      setLogado(true);
+    } else {
+      setErros({ geral: 'E-mail ou senha inválidos' });
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-teal-600 to-teal-700 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-8">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-teal-600">TopMEI</h1>
+          <p className="text-gray-600 mt-2">Painel de Controle</p>
+        </div>
+
+        <div className="space-y-6">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">E-mail</label>
+            <div className={`flex items-center bg-gray-50 border-2 rounded-lg px-4 ${erros.email ? 'border-red-500' : 'border-gray-200'}`}>
+              <Mail size={20} className="text-gray-400" />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="seu@email.com"
+                className="w-full bg-transparent ml-3 py-3 outline-none text-gray-800"
+              />
+            </div>
+            {erros.email && <p className="text-xs text-red-500 mt-1">{erros.email}</p>}
+            <p className="text-xs text-gray-500 mt-1">Demo: joao@email.com | contador@escritorio.com</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Senha</label>
+            <div className={`flex items-center bg-gray-50 border-2 rounded-lg px-4 ${erros.senha ? 'border-red-500' : 'border-gray-200'}`}>
+              <Lock size={20} className="text-gray-400" />
+              <input
+                type={mostrarSenha ? 'text' : 'password'}
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-transparent ml-3 py-3 outline-none text-gray-800"
+              />
+              <button
+                type="button"
+                onClick={() => setMostrarSenha(!mostrarSenha)}
+                className="text-gray-400"
+              >
+                {mostrarSenha ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
+            {erros.senha && <p className="text-xs text-red-500 mt-1">{erros.senha}</p>}
+          </div>
+
+          {erros.geral && (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+              <p className="text-red-700 text-sm">{erros.geral}</p>
+            </div>
+          )}
+
+          <button
+            onClick={handleLogin}
+            className="w-full bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white font-semibold py-3 rounded-lg transition"
+          >
+            Acessar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NotificacaoBar({ notificacoes, setNotificacoes }) {
+  const [mostrar, setMostrar] = useState(false);
+  const naoLidas = notificacoes.filter(n => !n.lida).length;
+
+  return (
+    <div className="relative">
+      <button 
+        onClick={() => setMostrar(!mostrar)}
+        className="relative text-gray-600 hover:text-teal-600 p-2"
+      >
+        <Bell size={24} />
+        {naoLidas > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+            {naoLidas}
+          </span>
+        )}
+      </button>
+
+      {mostrar && (
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl z-50 border border-gray-200">
+          <div className="p-4 border-b bg-gray-50 font-semibold text-gray-800">Notificações ({notificacoes.length})</div>
+          <div className="max-h-96 overflow-y-auto">
+            {notificacoes.length > 0 ? (
+              notificacoes.map(notif => (
+                <div key={notif.id} className={`p-4 border-b hover:bg-gray-50 flex items-start gap-3 ${!notif.lida ? 'bg-blue-50' : ''}`}>
+                  {notif.tipo === 'erro' ? <AlertCircle size={20} className="text-red-500 mt-1" /> : <CheckCircle size={20} className="text-green-500 mt-1" />}
+                  <p className="text-sm text-gray-800 flex-1">{notif.mensagem}</p>
+                </div>
+              ))
+            ) : (
+              <div className="p-8 text-center text-gray-500 text-sm">Sem notificações</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Card({ titulo, valor, cor, descricao }) {
+  const cores = {
+    teal: 'bg-teal-50 border-teal-200 text-teal-700',
+    yellow: 'bg-yellow-50 border-yellow-200 text-yellow-700',
+    red: 'bg-red-50 border-red-200 text-red-700'
+  };
+
+  return (
+    <div className={`border-2 rounded-lg p-6 ${cores[cor]}`}>
+      <p className="text-sm font-semibold opacity-75">{titulo}</p>
+      <p className="text-3xl font-bold mt-2">{valor}</p>
+      <p className="text-xs mt-2 opacity-75">{descricao}</p>
+    </div>
+  );
+}
+
+function DashboardCliente({ setLogado, notificacoes, setNotificacoes }) {
+  const [aba, setAba] = useState('dashboard');
+  const [abaCadastro, setAbaCadastro] = useState('basicos');
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow-md">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-teal-600">TopMEI - Cliente</h1>
+          <div className="flex items-center gap-6">
+            <NotificacaoBar notificacoes={notificacoes} setNotificacoes={setNotificacoes} />
+            <div className="text-right border-l pl-6">
+              <p className="text-sm font-semibold text-gray-800">João Silva</p>
+              <p className="text-xs text-gray-500">Cliente MEI</p>
+            </div>
+            <button onClick={() => setLogado(false)} className="text-gray-600 hover:text-red-500">
+              <LogOut size={20} />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-6 flex gap-8">
+          {[
+            { id: 'dashboard', label: 'Dashboard' },
+            { id: 'servicos', label: 'Serviços' },
+            { id: 'documentos', label: 'Documentos' },
+            { id: 'cadastro', label: 'Meu Cadastro' }
+          ].map(item => (
+            <button
+              key={item.id}
+              onClick={() => { setAba(item.id); setAbaCadastro('basicos'); }}
+              className={`py-4 px-2 border-b-4 font-semibold transition ${aba === item.id ? 'border-teal-600 text-teal-600' : 'border-transparent text-gray-600'}`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {aba === 'dashboard' && (
+          <div className="grid grid-cols-3 gap-6">
+            <Card titulo="Status Cadastro" valor="Ativo" cor="teal" descricao="Aprovado em 15/01" />
+            <Card titulo="Plano" valor="Super TOPMEI" cor="yellow" descricao="R$ 49,91/mês" />
+            <Card titulo="Documentos" valor="1" cor="red" descricao="Pendente: RG" />
+          </div>
+        )}
+
+        {aba === 'servicos' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">Meus Serviços</h2>
+            <div className="bg-white rounded-lg shadow p-6 border-l-4 border-teal-600">
+              <div className="flex justify-between">
+                <div>
+                  <h3 className="text-lg font-bold">Super TOPMEI</h3>
+                  <p className="text-sm text-green-600">Ativo</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-teal-600">R$ 49,91</p>
+                  <p className="text-xs text-gray-500">Próx: 15/02/2024</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {aba === 'documentos' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">Meus Documentos</h2>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">1 de 5 documentos obrigatórios aprovados</p>
+            </div>
+            <div className="grid grid-cols-1 gap-4">
+              {[
+                { desc: 'CPF do Proprietário', status: 'aprovado' },
+                { desc: 'RG do Proprietário', status: 'rejeitado' },
+                { desc: 'Comprovante de Endereço', status: null }
+              ].map((doc, i) => (
+                <div key={i} className="bg-white rounded-lg shadow p-6">
+                  <div className="flex justify-between items-start">
+                    <h3 className="text-lg font-bold">{doc.desc}</h3>
+                    {doc.status && (
+                      <span className={`px-3 py-1 rounded text-xs font-semibold ${
+                        doc.status === 'aprovado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {doc.status === 'aprovado' ? 'Aprovado' : 'Rejeitado'}
+                      </span>
+                    )}
+                  </div>
+                  {(!doc.status || doc.status === 'rejeitado') && (
+                    <button className="mt-4 w-full bg-teal-600 hover:bg-teal-700 text-white py-2 rounded-lg font-semibold flex items-center justify-center gap-2">
+                      <Upload size={18} /> {doc.status === 'rejeitado' ? 'Reenviar' : 'Enviar'} Documento
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {aba === 'cadastro' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">Meu Cadastro</h2>
+            <div className="bg-white border-b rounded-t-lg overflow-x-auto">
+              <div className="px-6 flex gap-8 min-w-max">
+                {[
+                  { id: 'basicos', label: 'Dados Básicos' },
+                  { id: 'regime', label: 'Regime' },
+                  { id: 'endereco', label: 'Endereço' },
+                  { id: 'contatos', label: 'Contatos' }
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setAbaCadastro(tab.id)}
+                    className={`py-4 px-2 border-b-4 font-semibold transition text-sm whitespace-nowrap ${abaCadastro === tab.id ? 'border-teal-600 text-teal-600' : 'border-transparent text-gray-600'}`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              {abaCadastro === 'basicos' && (
+                <div className="grid grid-cols-2 gap-6">
+                  <div><p className="text-sm text-gray-600">CNPJ</p><p className="font-bold">12.345.678/0001-90</p></div>
+                  <div><p className="text-sm text-gray-600">Razão Social</p><p className="font-bold">ABC Comércio LTDA</p></div>
+                  <div><p className="text-sm text-gray-600">Nome Fantasia</p><p className="font-bold">Empresa ABC</p></div>
+                  <div><p className="text-sm text-gray-600">Data Abertura</p><p className="font-bold">15/01/2024</p></div>
+                </div>
+              )}
+              {abaCadastro === 'regime' && (
+                <div><p className="text-sm text-gray-600">Regime Tributário</p><p className="font-bold text-green-600">Simples Nacional</p></div>
+              )}
+              {abaCadastro === 'endereco' && (
+                <div><p className="text-sm text-gray-600">Endereço</p><p className="font-bold">Rua das Flores, 123 - Centro - Campinas, SP</p></div>
+              )}
+              {abaCadastro === 'contatos' && (
+                <div className="space-y-4"><div><p className="text-sm text-gray-600">Telefone</p><p className="font-bold">(11) 98765-4321</p></div><div><p className="text-sm text-gray-600">E-mail</p><p className="font-bold">joao@email.com</p></div></div>
+              )}
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+function DashboardProfissional({ setLogado, notificacoes, setNotificacoes }) {
+  const [aba, setAba] = useState('clientes');
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow-md">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-teal-600">TopMEI - Profissional</h1>
+          <div className="flex items-center gap-6">
+            <NotificacaoBar notificacoes={notificacoes} setNotificacoes={setNotificacoes} />
+            <div className="text-right border-l pl-6">
+              <p className="text-sm font-semibold text-gray-800">Carlos Contador</p>
+              <p className="text-xs text-gray-500">Contador</p>
+            </div>
+            <button onClick={() => setLogado(false)} className="text-gray-600 hover:text-red-500">
+              <LogOut size={20} />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-6 flex gap-8">
+          {[
+            { id: 'clientes', label: 'Meus Clientes' },
+            { id: 'aprovacoes', label: 'Aprovações' },
+            { id: 'contratos', label: 'Contratos' },
+            { id: 'financeiro', label: 'Financeiro' }
+          ].map(item => (
+            <button
+              key={item.id}
+              onClick={() => setAba(item.id)}
+              className={`py-4 px-2 border-b-4 font-semibold transition ${aba === item.id ? 'border-teal-600 text-teal-600' : 'border-transparent text-gray-600'}`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {aba === 'clientes' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">Meus Clientes</h2>
+            {[
+              { nome: 'João Silva', cnpj: '12.345.678/0001-90', regime: 'MEI', status: 'Ativo' },
+              { nome: 'Maria Santos', cnpj: '98.765.432/0001-01', regime: 'SIMPLES', status: 'Ativo' },
+              { nome: 'Pedro Oliveira', cnpj: '55.555.555/0001-55', regime: 'MEI', status: 'Pendente' }
+            ].map((c, i) => (
+              <div key={i} className="bg-white rounded-lg shadow p-6 hover:shadow-lg">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg font-bold">{c.nome}</h3>
+                    <p className="text-sm text-gray-600">CNPJ: {c.cnpj} | Regime: {c.regime}</p>
+                  </div>
+                  <span className={`px-3 py-1 rounded text-sm font-semibold ${c.status === 'Ativo' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{c.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {aba === 'aprovacoes' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">Fila de Aprovações</h2>
+            {[
+              { cliente: 'João Silva', tipo: 'RG', status: 'pendente' },
+              { cliente: 'Maria Santos', tipo: 'CPF', status: 'pendente' },
+              { cliente: 'Pedro Oliveira', tipo: 'Comprovante Endereço', status: 'pendente' }
+            ].map((a, i) => (
+              <div key={i} className="bg-white rounded-lg shadow p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold">{a.cliente}</h3>
+                    <p className="text-sm text-gray-600">Documento: {a.tipo}</p>
+                  </div>
+                  <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded text-sm font-semibold">Pendente</span>
+                </div>
+                <div className="flex gap-2">
+                  <button className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-semibold">Aprovar</button>
+                  <button className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg font-semibold">Rejeitar</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {aba === 'contratos' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">Gestão de Contratos</h2>
+            <div className="grid grid-cols-3 gap-6">
+              <Card titulo="Contratos Ativos" valor="2" cor="teal" descricao="Clientes ativos" />
+              <Card titulo="Receita Mensal" valor="R$ 108,16" cor="yellow" descricao="Total de planos" />
+              <Card titulo="Próximos Vencimentos" valor="2" cor="red" descricao="Próximos 7 dias" />
+            </div>
+            <div className="grid grid-cols-1 gap-4">
+              {[
+                { cliente: 'João Silva', plano: 'Super TOPMEI', valor: 49.91, vencimento: '15/02/2024' },
+                { cliente: 'Maria Santos', plano: 'Mega TOPMEI', valor: 58.25, vencimento: '10/02/2024' }
+              ].map((c, i) => (
+                <div key={i} className="bg-white rounded-lg shadow p-6">
+                  <div className="flex justify-between">
+                    <div><h3 className="font-bold">{c.cliente}</h3><p className="text-sm text-gray-600">{c.plano}</p></div>
+                    <div className="text-right"><p className="text-2xl font-bold text-teal-600">R$ {c.valor.toFixed(2)}</p><p className="text-xs text-gray-500">{c.vencimento}</p></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {aba === 'financeiro' && (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold">Relatório Financeiro</h2>
+            <div className="grid grid-cols-3 gap-6">
+              <Card titulo="Receita Janeiro" valor="R$ 108,16" cor="teal" descricao="Total de contratos" />
+              <Card titulo="Inadimplência" valor="R$ 0,00" cor="yellow" descricao="Sem atrasos" />
+              <Card titulo="Taxa Retenção" valor="100%" cor="teal" descricao="Clientes ativos" />
+            </div>
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-bold mb-4">Cobranças Recentes</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-2">Cliente</th>
+                      <th className="text-left py-2">Valor</th>
+                      <th className="text-left py-2">Vencimento</th>
+                      <th className="text-left py-2">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b hover:bg-gray-50">
+                      <td className="py-3">João Silva</td>
+                      <td>R$ 49,91</td>
+                      <td>15/02/2024</td>
+                      <td><span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Pago</span></td>
+                    </tr>
+                    <tr className="border-b hover:bg-gray-50">
+                      <td className="py-3">Maria Santos</td>
+                      <td>R$ 58,25</td>
+                      <td>10/02/2024</td>
+                      <td><span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Pago</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}

@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilo para simular o modal do DaisyUI que foi usado no DashboardCliente */
+.modal {
+  display: none;
+}
+.modal-backdrop {
+  display: none;
+}
+.modal-box {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+}
+.modal-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease-in-out;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-primary {
+  background-color: #0d9488;
+  color: white;
+}
+.btn-primary:hover {
+  background-color: #0f766e;
+}
+

@@ -1,0 +1,594 @@
+# TopMEI - Documentação Completa do Projeto
+
+## 1. Visão Geral
+
+TopMEI é uma plataforma de gestão contábil especializada em Microempreendedores Individuais (MEI) e empresas de pequeno/médio porte. O sistema conecta clientes (MEI/empresas) com escritórios contábeis e seus profissionais, permitindo cadastro, aprovação de documentos, contratação de serviços e gestão financeira.
+
+### Objetivos Principais
+- Centralizar cadastros de clientes com múltiplos regimes tributários
+- Automatizar fluxo de aprovação de documentos
+- Gerenciar contratos e cobranças
+- Facilitar comunicação entre cliente e profissional via notificações
+- Rastrear toda movimentação de dados via auditoria
+
+---
+
+## 2. Arquitetura Geral
+
+### 2.1 Estrutura de Usuários
+
+```
+TopMEI
+├── Cliente (MEI/Empresa)
+│   ├── Visualizar cadastro próprio
+│   ├── Upload de documentos
+│   ├── Contratar serviços
+│   └── Acompanhar aprovações
+│
+├── Profissional (Contador/Operacional)
+│   ├── Visualizar clientes do escritório
+│   ├── Aprovar/rejeitar documentos
+│   ├── Gerenciar contratos
+│   ├── Emitir relatórios
+│   └── Gerenciar cobranças
+│
+└── Admin (Sistema)
+    ├── Gerenciar escritórios
+    ├── Gerenciar profissionais
+    ├── Acesso a relatórios globais
+    └── Configurações gerais
+```
+
+### 2.2 Relacionamentos Principais
+
+```
+Escritório (1) ─────┐
+                    ├─── Profissional (N:N)
+                    │
+                    ├─── Cliente (N)
+                    │    ├─── Cadastro Completo (N)
+                    │    │    ├─── Documentos (N)
+                    │    │    ├─── Endereços (N)
+                    │    │    ├─── Contatos (N)
+                    │    │    ├─── Membros (N)
+                    │    │    └─── Inscrições Estaduais (N)
+                    │    │
+                    │    └─── Contratos (N)
+                    │         ├─── Cobranças (N)
+                    │         └─── Histórico (N)
+                    │
+                    └─── Auditoria (N)
+```
+
+---
+
+## 3. Estrutura de Banco de Dados
+
+### 3.1 Tabelas Principais
+
+#### **3.1.1 Escritórios**
+Representa os escritórios contábeis cadastrados no sistema.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id_escritorio | UUID | Identificador único |
+| nome_escritorio | VARCHAR(255) | Nome do escritório |
+| cnpj_escritorio | VARCHAR(14) | CNPJ único |
+| email_escritorio | VARCHAR(255) | E-mail de contato |
+| telefone_escritorio | VARCHAR(15) | Telefone |
+| uf_escritorio | VARCHAR(2) | Estado |
+| data_criacao | TIMESTAMP | Quando foi criado |
+
+#### **3.1.2 Profissionais**
+Usuários que trabalham nos escritórios (contadores, operacionais, etc).
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id_profissional | UUID | Identificador único |
+| email_profissional | VARCHAR(255) | E-mail UNIQUE |
+| nome_profissional | VARCHAR(255) | Nome completo |
+| telefone | VARCHAR(15) | Telefone |
+| ativo_sistema | BOOLEAN | Se está ativo |
+| data_criacao | TIMESTAMP | Data de criação |
+
+#### **3.1.3 Profissionais-Escritórios (Relação N:N)**
+Define vínculo entre profissional e escritório com sua função.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id_profissional_escritorio | UUID | Identificador único |
+| id_profissional | UUID | FK para profissional |
+| id_escritorio | UUID | FK para escritório |
+| funcao | VARCHAR(50) | "admin", "contador", "operacional" |
+| ativo | BOOLEAN | Se o vínculo está ativo |
+| data_inicio | TIMESTAMP | Início do vínculo |
+| data_fim | TIMESTAMP | Fim do vínculo (NULL = ativo) |
+
+#### **3.1.4 Cadastros de Clientes**
+Dados principais da empresa/MEI.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id_cadastro | UUID | Identificador único |
+| id_escritorio | UUID | FK do escritório |
+| cnpj | VARCHAR(14) | CNPJ UNIQUE |
+| razaoSocial | VARCHAR(255) | Razão social |
+| nomeFantasia | VARCHAR(255) | Nome fantasia |
+| regime_tributario | VARCHAR(50) | "MEI", "SIMPLES", "LTDA", etc |
+| status_cadastro | VARCHAR(20) | "aguardando_aprovacao", "em_revisao", "ativo", "rejeitado" |
+| motivo_rejeicao | TEXT | Motivo se rejeitado |
+| criado_por | VARCHAR(255) | Email do criador |
+| aprovado_por | VARCHAR(255) | Email de quem aprovou |
+| data_criacao | TIMESTAMP | Data de criação |
+| data_aprovacao | TIMESTAMP | Data de aprovação |
+| data_atualizacao | TIMESTAMP | Data da última atualização |
+
+#### **3.1.5 Cadastros de Documentos**
+Documentos enviados para validação.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id_documento | UUID | Identificador único |
+| id_cadastro | UUID | FK do cadastro |
+| tipoDocumento | VARCHAR(50) | "cpf", "rg", "simei", etc |
+| categoria_documento | VARCHAR(50) | "obrigatorio_basico", "mei_especifico" |
+| criticidade | VARCHAR(50) | "bloqueante", "importante", "complementar" |
+| obrigatorio | BOOLEAN | Se é obrigatório |
+| nome_arquivo_original | VARCHAR(255) | Nome original do arquivo |
+| tamanho_arquivo_bytes | BIGINT | Tamanho em bytes |
+| tipo_mime | VARCHAR(100) | "application/pdf", "image/jpeg", etc |
+| bucket_nome | VARCHAR(100) | Bucket Supabase Storage |
+| chave_bucket | VARCHAR(500) | Caminho no bucket |
+| hash_arquivo | VARCHAR(64) | SHA256 para integridade |
+| status_documento | VARCHAR(20) | "pendente_analise", "aprovado", "rejeitado" |
+| motivo_rejeicao | TEXT | Motivo da rejeição |
+| versao_documento | INT | Número da versão |
+| data_upload | TIMESTAMP | Data do upload |
+| data_aprovacao | TIMESTAMP | Data da aprovação |
+| enviado_por | VARCHAR(255) | Email de quem enviou |
+| aprovado_por | VARCHAR(255) | Email de quem aprovou |
+
+#### **3.1.6 Endereços**
+Localizações das empresas.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id_endereco | UUID | Identificador único |
+| id_cadastro | UUID | FK do cadastro |
+| logradouro | VARCHAR(255) | Rua/Avenida |
+| numero | VARCHAR(10) | Número ou "S/N" |
+| complemento | VARCHAR(100) | Complemento |
+| bairro | VARCHAR(100) | Bairro |
+| cep | VARCHAR(8) | CEP sem hífen |
+| municipio | VARCHAR(100) | Município |
+| uf | VARCHAR(2) | Estado (UF) |
+
+#### **3.1.7 Contratos**
+Serviços contratados pelo cliente.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id_contrato | UUID | Identificador único |
+| id_cadastro | UUID | FK do cadastro |
+| id_servico | UUID | FK do serviço |
+| numero_contrato | VARCHAR(50) | Identificador amigável |
+| data_contratacao | DATE | Data da contratação |
+| data_inicio_vigencia | DATE | Início da vigência |
+| data_fim_vigencia | DATE | Fim da vigência (NULL = indefinido) |
+| ciclo_cobranca | VARCHAR(20) | "mensal", "anual", "semestral" |
+| preco_contratado | DECIMAL(10,2) | Preço acordado |
+| desconto_aplicado | DECIMAL(5,2) | Percentual de desconto |
+| valor_desconto | DECIMAL(10,2) | Valor em R$ do desconto |
+| valor_final | DECIMAL(10,2) | Valor final (gerado automaticamente) |
+| data_proximo_vencimento | DATE | Próxima data de cobrança |
+| status_contrato | VARCHAR(20) | "ativo", "suspenso", "cancelado", "vencido" |
+| renovacao_automatica | BOOLEAN | Se renova automaticamente |
+| data_criacao | TIMESTAMP | Data de criação |
+
+#### **3.1.8 Cobranças**
+Registro de cada cobrança realizada.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id_cobranca | UUID | Identificador único |
+| id_contrato | UUID | FK do contrato |
+| numero_cobranca | VARCHAR(50) | Identificador amigável |
+| valor | DECIMAL(10,2) | Valor da cobrança |
+| data_emissao | DATE | Data de emissão |
+| data_vencimento | DATE | Data de vencimento |
+| data_pagamento | DATE | Data do pagamento |
+| status_cobranca | VARCHAR(20) | "pendente", "pago", "vencido", "cancelado" |
+| forma_pagamento | VARCHAR(50) | "dinheiro", "transferencia", "cartao", "pix" |
+| multa | DECIMAL(10,2) | Multa aplicada |
+| juros | DECIMAL(10,2) | Juros aplicados |
+
+#### **3.1.9 Notificações**
+Sistema de alertas para usuários.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id_notificacao | UUID | Identificador único |
+| id_cadastro | UUID | FK do cadastro |
+| id_escritorio | UUID | FK do escritório |
+| tipo_notificacao | VARCHAR(50) | "cadastro_rejeitado", "documento_rejeitado", etc |
+| titulo | VARCHAR(255) | Título da notificação |
+| mensagem | TEXT | Mensagem completa |
+| detalhes | JSONB | Dados estruturados |
+| destinatario_email | VARCHAR(255) | Quem deve receber |
+| lida | BOOLEAN | Se foi lida |
+| data_criacao | TIMESTAMP | Data de criação |
+| data_expiracao | TIMESTAMP | Data de expiração |
+
+#### **3.1.10 Auditoria**
+Rastreamento de todas as mudanças no sistema.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id_auditoria | UUID | Identificador único |
+| id_cadastro | UUID | FK do cadastro afetado |
+| tabela_afetada | VARCHAR(100) | Qual tabela foi modificada |
+| operacao | VARCHAR(10) | "INSERT", "UPDATE", "DELETE" |
+| usuario_email | VARCHAR(255) | Quem fez a operação |
+| dados_anteriores | JSONB | Dados antes da mudança |
+| dados_novos | JSONB | Dados após a mudança |
+| data_operacao | TIMESTAMP | Quando foi feito |
+
+#### **3.1.11 Serviços Disponíveis**
+Catálogo de serviços oferecidos.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id_servico | UUID | Identificador único |
+| id_escritorio | UUID | FK do escritório |
+| nome_servico | VARCHAR(255) | Nome do serviço |
+| descricao | TEXT | Descrição |
+| tipo_servico | VARCHAR(50) | "incluso_plano", "avulso", "ambos" |
+| regime_tributario | VARCHAR(50) | Qual regime aplica (NULL = todos) |
+| preco_unitario | DECIMAL(10,2) | Preço unitário |
+| ativo | BOOLEAN | Se está ativo |
+
+#### **3.1.12 Planos**
+Pacotes de serviços pré-configurados.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| id_plano | UUID | Identificador único |
+| id_escritorio | UUID | FK do escritório |
+| nome_plano | VARCHAR(255) | Nome do plano |
+| descricao | TEXT | Descrição |
+| regime_tributario | VARCHAR(50) | Qual regime aplica |
+| preco_mensal | DECIMAL(10,2) | Preço mensal |
+| preco_anual | DECIMAL(10,2) | Preço anual |
+| desconto_anual | DECIMAL(5,2) | Desconto se pagar anual |
+| ativo | BOOLEAN | Se está ativo |
+
+---
+
+## 4. Fluxos Principais
+
+### 4.1 Fluxo de Cadastro (Cliente)
+
+```
+1. Cliente acessa login
+   ↓
+2. Cria novo cadastro (insere dados básicos)
+   ↓
+3. Status = "aguardando_aprovacao"
+   ↓
+4. Cliente faz upload de documentos
+   ↓
+5. Profissional recebe notificação
+   ↓
+6. Profissional analisa documentos
+   ├─ SE aprovado → status_documento = "aprovado"
+   └─ SE rejeitado → status_documento = "rejeitado"
+        ↓
+        Notificação ao cliente + motivo
+        ↓
+        Cliente edita dados/reenvia documento
+        ↓
+        Volta à análise
+   ↓
+7. Quando todos obrigatórios aprovados
+   ↓
+8. Status do cadastro = "ativo"
+   ↓
+9. Notificação ao cliente: "Cadastro aprovado"
+```
+
+### 4.2 Fluxo de Rejeição com Reavaliação
+
+```
+1. Profissional identifica problema no cadastro
+   ↓
+2. Muda status_cadastro para "rejeitado"
+   ↓
+3. TRIGGER cria notificação automaticamente
+   ↓
+4. Cliente recebe notificação via e-mail + app
+   ↓
+5. Cliente edita cadastro/documentos
+   ↓
+6. Cliente marca como "pronto_para_reavaliacao = TRUE"
+   ↓
+7. Profissional recebe notificação de reavaliação
+   ↓
+8. Volta à análise (passo 2)
+```
+
+### 4.3 Fluxo de Contratação de Serviços
+
+```
+1. Cliente acessa "Serviços"
+   ↓
+2. Visualiza planos disponíveis com preços
+   ↓
+3. Clica "Contratar"
+   ↓
+4. Seleciona ciclo (mensal/anual)
+   ↓
+5. Revisa resumo e confirma
+   ↓
+6. Contrato criado com status "ativo"
+   ↓
+7. Primeira cobrança agendada
+   ↓
+8. Profissional recebe notificação
+   ↓
+9. Sistema envia comprovante via e-mail
+```
+
+### 4.4 Fluxo de Aprovação de Documentos
+
+```
+1. Cliente envia documento
+   ↓
+2. status_documento = "pendente_analise"
+   ↓
+3. Profissional acessa fila de aprovações
+   ↓
+4. Analisa arquivo
+   ├─ SE OK → clica "Aprovar"
+   │   └─ status = "aprovado"
+   │   └─ data_aprovacao = NOW()
+   │   └─ Notificação ao cliente
+   │
+   └─ SE problema → clica "Rejeitar"
+       └─ status = "rejeitado"
+       └─ motivo_rejeicao = (insere motivo)
+       └─ versao_documento + 1
+       └─ TRIGGER cria notificação ao cliente
+       └─ Cliente pode reenviar (versão 2, 3, etc)
+```
+
+---
+
+## 5. Módulos do Sistema
+
+### 5.1 Dashboard Cliente
+
+**Abas:**
+- **Dashboard**: Cards com resumo (Status, Plano, Documentos pendentes)
+- **Serviços**: Lista de serviços contratados com vencimentos
+- **Documentos**: Upload/visualização de documentos com filtros
+- **Meu Cadastro**: Visualização e edição de dados em abas (Básicos, Regime, Endereço, etc)
+
+**Funcionalidades:**
+- Upload de documentos com validação de tipo/tamanho
+- Filtros de documentos (pendentes, rejeitados, aprovados)
+- Visualização de status de aprovação
+- Notificações em tempo real
+
+### 5.2 Dashboard Profissional
+
+**Abas:**
+- **Meus Clientes**: Lista de todos os clientes do escritório
+- **Aprovações**: Fila de documentos aguardando análise
+- **Contratos**: Gestão de contratos com receita mensal
+- **Financeiro**: Relatório de cobranças, inadimplência e taxa de retenção
+
+**Funcionalidades:**
+- Pesquisa e filtros de clientes
+- Aprovação/rejeição em lote de documentos
+- Visualização de contratos e próximos vencimentos
+- Relatórios de receita mensal/anual
+- Gestão de cobranças (pendentes, vencidas, pagas)
+
+### 5.3 Dashboard Admin
+
+**Abas:**
+- **Dashboard**: Métricas globais (escritórios, clientes, receita total)
+- **Escritórios**: Gerenciar escritórios cadastrados
+- **Usuários**: Gerenciar profissionais e suas permissões
+- **Relatórios**: Relatórios avançados por período/escritório
+
+**Funcionalidades:**
+- Criar/editar/desativar escritórios
+- Gerenciar profissionais e suas vinculações
+- Visualizar auditoria completa
+- Exportar relatórios em PDF/Excel
+
+---
+
+## 6. Políticas de Segurança (RLS - Row Level Security)
+
+### 6.1 Cliente
+- Vê apenas seu próprio cadastro
+- Pode editar dados enquanto status = "rascunho" ou "rejeitado"
+- Pode fazer upload de documentos
+- Pode visualizar status de aprovação
+- Após aprovação: read-only
+
+### 6.2 Profissional (Contador/Operacional)
+- Vê todos os cadastros dos clientes do seu escritório
+- Pode editar cadastros a qualquer momento
+- Pode fazer upload em nome do cliente
+- Pode aprovar/rejeitar documentos
+- Pode alterar status do cadastro
+- Acesso completo à auditoria
+
+### 6.3 Admin
+- Acesso total ao sistema
+- Sem restrições de visibilidade
+- Pode gerenciar todos os escritórios
+
+---
+
+## 7. Tabelas de Suporte / Relacionamentos
+
+### 7.1 Membros da Empresa
+Quadro societário.
+
+| Campo | Tipo |
+|-------|------|
+| id_membro | UUID |
+| id_cadastro | UUID |
+| nomeMembro | VARCHAR(255) |
+| cargoMembro | VARCHAR(100) |
+| cpfMembro | VARCHAR(11) |
+
+### 7.2 Inscrições Estaduais
+Múltiplas inscrições por estado.
+
+| Campo | Tipo |
+|-------|------|
+| id_inscricao | UUID |
+| id_cadastro | UUID |
+| ieEstado | VARCHAR(20) |
+| estadoIe | VARCHAR(2) |
+| situacaoInscricao | VARCHAR(20) |
+
+### 7.3 Contatos Adicionais
+Múltiplos telefones/e-mails.
+
+| Campo | Tipo |
+|-------|------|
+| id_contato_adicional | UUID |
+| id_cadastro | UUID |
+| tipo_contato | VARCHAR(20) |
+| valor_contato | VARCHAR(255) |
+| descricao_contato | VARCHAR(100) |
+
+### 7.4 Histórico de Contratos
+Auditoria de mudanças em contratos.
+
+| Campo | Tipo |
+|-------|------|
+| id_historico | UUID |
+| id_contrato | UUID |
+| tipo_mudanca | VARCHAR(50) |
+| dados_anteriores | JSONB |
+| dados_novos | JSONB |
+| data_mudanca | TIMESTAMP |
+
+---
+
+## 8. Índices de Performance
+
+```sql
+-- Cadastros
+CREATE UNIQUE INDEX idx_cnpj ON cadastros_clientes(cnpj);
+CREATE INDEX idx_id_escritorio ON cadastros_clientes(id_escritorio);
+CREATE INDEX idx_status_cadastro ON cadastros_clientes(status_cadastro);
+
+-- Documentos
+CREATE INDEX idx_cadastro_documento ON cadastros_documentos(id_cadastro);
+CREATE INDEX idx_status_documento ON cadastros_documentos(status_documento);
+CREATE INDEX idx_tipo_documento ON cadastros_documentos(tipoDocumento);
+
+-- Profissionais
+CREATE UNIQUE INDEX idx_email_prof ON profissionais(email_profissional);
+
+-- Contratos
+CREATE INDEX idx_contrato_cadastro ON contratos(id_cadastro);
+CREATE INDEX idx_status_contrato ON contratos(status_contrato);
+
+-- Cobranças
+CREATE INDEX idx_cobranca_status ON cobrancas(status_cobranca);
+CREATE INDEX idx_cobranca_vencimento ON cobrancas(data_vencimento);
+```
+
+---
+
+## 9. Integração de Notificações
+
+### 9.1 Tipos de Notificação
+
+1. **cadastro_rejeitado**: Quando cadastro inteiro é rejeitado
+2. **documento_rejeitado**: Quando um documento é rejeitado
+3. **pedido_reavaliacao**: Quando cliente marca como pronto
+4. **aprovacao_pendente**: Quando falta documentos
+5. **cadastro_aprovado**: Quando tudo está aprovado
+
+### 9.2 Canais
+
+- **E-mail**: Imediato (SendGrid/AWS SES)
+- **In-App**: Via notificação do sistema
+- **Badge**: Contador de ações pendentes
+
+---
+
+## 10. Permissões por Tipo de Usuário
+
+### Cliente (MEI/Empresa)
+- ✅ Ver seu próprio cadastro
+- ✅ Editar enquanto não aprovado
+- ✅ Upload de documentos
+- ✅ Contratar serviços
+- ✅ Ver status de aprovação
+- ✅ Receber notificações
+- ❌ Ver outros cadastros
+- ❌ Aprovar documentos
+
+### Profissional (Contador)
+- ✅ Ver todos os cadastros do seu escritório
+- ✅ Editar cadastros
+- ✅ Aprovar/rejeitar documentos
+- ✅ Gerenciar contratos
+- ✅ Ver cobranças
+- ✅ Emitir relatórios
+- ✅ Ver auditoria
+- ❌ Gerenciar outros escritórios
+- ❌ Criar profissionais
+
+### Admin
+- ✅ Acesso total
+- ✅ Gerenciar escritórios
+- ✅ Gerenciar profissionais
+- ✅ Ver auditoria global
+- ✅ Relatórios avançados
+
+---
+
+## 11. Tecnologias Utilizadas
+
+| Camada | Tecnologia |
+|--------|-----------|
+| Frontend | React, Tailwind CSS, Lucide Icons |
+| Backend | Node.js/Supabase (PostgreSQL) |
+| Armazenamento | Supabase Storage (S3) |
+| Autenticação | Supabase Auth |
+| Real-time | Supabase Realtime |
+| Email | SendGrid/AWS SES |
+| Deploy | Vercel (Frontend), Supabase (Backend) |
+
+---
+
+## 12. Próximos Passos / Melhorias Futuras
+
+1. Integração com APIs de dados da Receita Federal
+2. Sistema de assinatura digital de documentos
+3. Emissão automática de RPA/DASN
+4. Integração com sistemas contábeis (SPED)
+5. App mobile (React Native)
+6. Relatórios em BI (Metabase/Power BI)
+7. Integração com WhatsApp Business
+8. Backup automático e recuperação de desastres
+9. API pública para integrações de terceiros
+10. Sistema de multas/juros automático
+
+---
+
+## 13. Contato e Suporte
+
+Para dúvidas sobre a arquitetura ou implementação, consulte a documentação técnica completa do banco de dados nos arquivos SQL inclusos.

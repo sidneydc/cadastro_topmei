@@ -1,0 +1,369 @@
+-- create_tables_topmei.sql
+-- Script gerado para TopMEI: tabelas, índices, foreign keys, funções e triggers de auditoria/notificação.
+-- Autor: ChatGPT (ajuste conforme necessário)
+-- Rodar como superuser ou role com permissão para criar extensão
+
+-- 0) Extensões
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- 1) Schemas (opcional)
+-- CREATE SCHEMA IF NOT EXISTS topmei;   -- se quiser isolar em schema próprio
+
+-- 2) Tabela: escritorios
+CREATE TABLE IF NOT EXISTS escritorios (
+  id_escritorio UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  nome_escritorio VARCHAR(255) NOT NULL,
+  cnpj_escritorio VARCHAR(14) UNIQUE,
+  email_escritorio VARCHAR(255),
+  telefone_escritorio VARCHAR(15),
+  uf_escritorio VARCHAR(2),
+  data_criacao TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- 3) Tabela: profissionais
+CREATE TABLE IF NOT EXISTS profissionais (
+  id_profissional UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email_profissional VARCHAR(255) UNIQUE NOT NULL,
+  nome_profissional VARCHAR(255) NOT NULL,
+  telefone VARCHAR(15),
+  ativo_sistema BOOLEAN DEFAULT true,
+  data_criacao TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- 4) Tabela: profissionais_escritorios (N:N)
+CREATE TABLE IF NOT EXISTS profissionais_escritorios (
+  id_profissional_escritorio UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_profissional UUID NOT NULL,
+  id_escritorio UUID NOT NULL,
+  funcao VARCHAR(50) CHECK (funcao IN ('admin','contador','operacional')) DEFAULT 'operacional',
+  ativo BOOLEAN DEFAULT true,
+  data_inicio TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  data_fim TIMESTAMP WITH TIME ZONE,
+  CONSTRAINT fk_pe_profissional FOREIGN KEY (id_profissional) REFERENCES profissionais(id_profissional) ON DELETE CASCADE,
+  CONSTRAINT fk_pe_escritorio FOREIGN KEY (id_escritorio) REFERENCES escritorios(id_escritorio) ON DELETE CASCADE
+);
+
+-- 5) Tabela: cadastros_clientes
+CREATE TABLE IF NOT EXISTS cadastros_clientes (
+  id_cadastro UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_escritorio UUID NOT NULL,
+  cnpj VARCHAR(14) UNIQUE,
+  razao_social VARCHAR(255),
+  nome_fantasia VARCHAR(255),
+  regime_tributario VARCHAR(50),
+  status_cadastro VARCHAR(30) DEFAULT 'aguardando_aprovacao',
+  motivo_rejeicao TEXT,
+  criado_por VARCHAR(255),
+  aprovado_por VARCHAR(255),
+  data_criacao TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  data_aprovacao TIMESTAMP WITH TIME ZONE,
+  data_atualizacao TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  CONSTRAINT fk_cadastro_escritorio FOREIGN KEY (id_escritorio) REFERENCES escritorios(id_escritorio) ON DELETE SET NULL
+);
+
+-- 6) Tabela: cadastros_documentos
+CREATE TABLE IF NOT EXISTS cadastros_documentos (
+  id_documento UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_cadastro UUID NOT NULL,
+  tipo_documento VARCHAR(50),
+  categoria_documento VARCHAR(50),
+  criticidade VARCHAR(50),
+  obrigatorio BOOLEAN DEFAULT true,
+  nome_arquivo_original VARCHAR(255),
+  tamanho_arquivo_bytes BIGINT,
+  tipo_mime VARCHAR(100),
+  bucket_nome VARCHAR(100),
+  chave_bucket VARCHAR(500),
+  hash_arquivo VARCHAR(64),
+  status_documento VARCHAR(30) DEFAULT 'pendente_analise',
+  motivo_rejeicao TEXT,
+  versao_documento INT DEFAULT 1,
+  data_upload TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  data_aprovacao TIMESTAMP WITH TIME ZONE,
+  enviado_por VARCHAR(255),
+  aprovado_por VARCHAR(255),
+  CONSTRAINT fk_doc_cadastro FOREIGN KEY (id_cadastro) REFERENCES cadastros_clientes(id_cadastro) ON DELETE CASCADE
+);
+
+-- 7) Tabela: enderecos
+CREATE TABLE IF NOT EXISTS enderecos (
+  id_endereco UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_cadastro UUID NOT NULL,
+  logradouro VARCHAR(255),
+  numero VARCHAR(10),
+  complemento VARCHAR(100),
+  bairro VARCHAR(100),
+  cep VARCHAR(8),
+  municipio VARCHAR(100),
+  uf VARCHAR(2),
+  CONSTRAINT fk_end_cadastro FOREIGN KEY (id_cadastro) REFERENCES cadastros_clientes(id_cadastro) ON DELETE CASCADE
+);
+
+-- 8) Tabela: contratos
+CREATE TABLE IF NOT EXISTS contratos (
+  id_contrato UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_cadastro UUID NOT NULL,
+  id_servico UUID,
+  numero_contrato VARCHAR(50),
+  data_contratacao DATE,
+  data_inicio_vigencia DATE,
+  data_fim_vigencia DATE,
+  ciclo_cobranca VARCHAR(20),
+  preco_contratado DECIMAL(10,2),
+  desconto_aplicado DECIMAL(5,2),
+  valor_desconto DECIMAL(10,2),
+  valor_final DECIMAL(10,2),
+  data_proximo_vencimento DATE,
+  status_contrato VARCHAR(20) DEFAULT 'ativo',
+  renovacao_automatica BOOLEAN DEFAULT false,
+  data_criacao TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  CONSTRAINT fk_contrato_cadastro FOREIGN KEY (id_cadastro) REFERENCES cadastros_clientes(id_cadastro) ON DELETE CASCADE
+);
+
+-- 9) Tabela: cobrancas
+CREATE TABLE IF NOT EXISTS cobrancas (
+  id_cobranca UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_contrato UUID NOT NULL,
+  numero_cobranca VARCHAR(50),
+  valor DECIMAL(10,2),
+  data_emissao DATE,
+  data_vencimento DATE,
+  data_pagamento DATE,
+  status_cobranca VARCHAR(20) DEFAULT 'pendente',
+  forma_pagamento VARCHAR(50),
+  multa DECIMAL(10,2) DEFAULT 0,
+  juros DECIMAL(10,2) DEFAULT 0,
+  CONSTRAINT fk_cob_contrato FOREIGN KEY (id_contrato) REFERENCES contratos(id_contrato) ON DELETE CASCADE
+);
+
+-- 10) Tabela: notificacoes
+CREATE TABLE IF NOT EXISTS notificacoes (
+  id_notificacao UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_cadastro UUID,
+  id_escritorio UUID,
+  tipo_notificacao VARCHAR(50),
+  titulo VARCHAR(255),
+  mensagem TEXT,
+  detalhes JSONB,
+  destinatario_email VARCHAR(255),
+  lida BOOLEAN DEFAULT false,
+  data_criacao TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  data_expiracao TIMESTAMP WITH TIME ZONE
+);
+
+-- 11) Tabela: auditoria (audit log genérico)
+CREATE TABLE IF NOT EXISTS auditoria (
+  id_auditoria UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_cadastro UUID,
+  tabela_afetada VARCHAR(100),
+  operacao VARCHAR(10),
+  usuario_email VARCHAR(255),
+  dados_anteriores JSONB,
+  dados_novos JSONB,
+  data_operacao TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+-- 12) Tabela: servicos
+CREATE TABLE IF NOT EXISTS servicos (
+  id_servico UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_escritorio UUID,
+  nome_servico VARCHAR(255) NOT NULL,
+  descricao TEXT,
+  tipo_servico VARCHAR(50),
+  regime_tributario VARCHAR(50),
+  preco_unitario DECIMAL(10,2),
+  ativo BOOLEAN DEFAULT true,
+  CONSTRAINT fk_serv_escritorio FOREIGN KEY (id_escritorio) REFERENCES escritorios(id_escritorio) ON DELETE SET NULL
+);
+
+-- 13) Tabela: planos
+CREATE TABLE IF NOT EXISTS planos (
+  id_plano UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_escritorio UUID,
+  nome_plano VARCHAR(255),
+  descricao TEXT,
+  regime_tributario VARCHAR(50),
+  preco_mensal DECIMAL(10,2),
+  preco_anual DECIMAL(10,2),
+  desconto_anual DECIMAL(5,2),
+  ativo BOOLEAN DEFAULT true,
+  CONSTRAINT fk_plano_escritorio FOREIGN KEY (id_escritorio) REFERENCES escritorios(id_escritorio) ON DELETE SET NULL
+);
+
+-- 14) Tabela: membros_empresa
+CREATE TABLE IF NOT EXISTS membros_empresa (
+  id_membro UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_cadastro UUID NOT NULL,
+  nome_membro VARCHAR(255),
+  cargo_membro VARCHAR(100),
+  cpf_membro VARCHAR(11),
+  CONSTRAINT fk_membro_cadastro FOREIGN KEY (id_cadastro) REFERENCES cadastros_clientes(id_cadastro) ON DELETE CASCADE
+);
+
+-- 15) Tabela: inscricoes_estaduais
+CREATE TABLE IF NOT EXISTS inscricoes_estaduais (
+  id_inscricao UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_cadastro UUID NOT NULL,
+  ie_estado VARCHAR(20),
+  estado_ie VARCHAR(2),
+  situacao_inscricao VARCHAR(20),
+  CONSTRAINT fk_ie_cadastro FOREIGN KEY (id_cadastro) REFERENCES cadastros_clientes(id_cadastro) ON DELETE CASCADE
+);
+
+-- 16) Tabela: contatos_adicionais
+CREATE TABLE IF NOT EXISTS contatos_adicionais (
+  id_contato_adicional UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_cadastro UUID NOT NULL,
+  tipo_contato VARCHAR(20),
+  valor_contato VARCHAR(255),
+  descricao_contato VARCHAR(100),
+  CONSTRAINT fk_contato_cadastro FOREIGN KEY (id_cadastro) REFERENCES cadastros_clientes(id_cadastro) ON DELETE CASCADE
+);
+
+-- 17) Tabela: historico_contratos
+CREATE TABLE IF NOT EXISTS historico_contratos (
+  id_historico UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id_contrato UUID NOT NULL,
+  tipo_mudanca VARCHAR(50),
+  dados_anteriores JSONB,
+  dados_novos JSONB,
+  data_mudanca TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  CONSTRAINT fk_hist_contrato FOREIGN KEY (id_contrato) REFERENCES contratos(id_contrato) ON DELETE CASCADE
+);
+
+-- 18) Índices sugeridos (conforme documento)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_cnpj ON cadastros_clientes(cnpj);
+CREATE INDEX IF NOT EXISTS idx_id_escritorio ON cadastros_clientes(id_escritorio);
+CREATE INDEX IF NOT EXISTS idx_status_cadastro ON cadastros_clientes(status_cadastro);
+
+CREATE INDEX IF NOT EXISTS idx_cadastro_documento ON cadastros_documentos(id_cadastro);
+CREATE INDEX IF NOT EXISTS idx_status_documento ON cadastros_documentos(status_documento);
+CREATE INDEX IF NOT EXISTS idx_tipo_documento ON cadastros_documentos(tipo_documento);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_email_prof ON profissionais(email_profissional);
+
+CREATE INDEX IF NOT EXISTS idx_contrato_cadastro ON contratos(id_cadastro);
+CREATE INDEX IF NOT EXISTS idx_status_contrato ON contratos(status_contrato);
+
+CREATE INDEX IF NOT EXISTS idx_cobranca_status ON cobrancas(status_cobranca);
+CREATE INDEX IF NOT EXISTS idx_cobranca_vencimento ON cobrancas(data_vencimento);
+
+-- 19) Função genérica de auditoria
+CREATE OR REPLACE FUNCTION fn_auditoria() RETURNS TRIGGER AS $$
+BEGIN
+  IF (TG_OP = 'INSERT') THEN
+    INSERT INTO auditoria (id_cadastro, tabela_afetada, operacao, usuario_email, dados_anteriores, dados_novos, data_operacao)
+    VALUES (NEW.id_cadastro::uuid, TG_TABLE_NAME, TG_OP, current_setting('app.current_user', true), NULL, to_jsonb(NEW), now());
+    RETURN NEW;
+  ELSIF (TG_OP = 'UPDATE') THEN
+    INSERT INTO auditoria (id_cadastro, tabela_afetada, operacao, usuario_email, dados_anteriores, dados_novos, data_operacao)
+    VALUES (COALESCE(NEW.id_cadastro, OLD.id_cadastro)::uuid, TG_TABLE_NAME, TG_OP, current_setting('app.current_user', true), to_jsonb(OLD), to_jsonb(NEW), now());
+    RETURN NEW;
+  ELSIF (TG_OP = 'DELETE') THEN
+    INSERT INTO auditoria (id_cadastro, tabela_afetada, operacao, usuario_email, dados_anteriores, dados_novos, data_operacao)
+    VALUES (OLD.id_cadastro::uuid, TG_TABLE_NAME, TG_OP, current_setting('app.current_user', true), to_jsonb(OLD), NULL, now());
+    RETURN OLD;
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 20) Attach audit triggers to tables where relevant
+-- Note: ensure app.current_user is set by your application/session for meaningful "usuario_email"
+CREATE TRIGGER trg_audit_cadastros
+  AFTER INSERT OR UPDATE OR DELETE ON cadastros_clientes
+  FOR EACH ROW EXECUTE FUNCTION fn_auditoria();
+
+CREATE TRIGGER trg_audit_documentos
+  AFTER INSERT OR UPDATE OR DELETE ON cadastros_documentos
+  FOR EACH ROW EXECUTE FUNCTION fn_auditoria();
+
+CREATE TRIGGER trg_audit_contratos
+  AFTER INSERT OR UPDATE OR DELETE ON contratos
+  FOR EACH ROW EXECUTE FUNCTION fn_auditoria();
+
+CREATE TRIGGER trg_audit_cobrancas
+  AFTER INSERT OR UPDATE OR DELETE ON cobrancas
+  FOR EACH ROW EXECUTE FUNCTION fn_auditoria();
+
+-- 21) Função para criar notificação quando documento for rejeitado
+CREATE OR REPLACE FUNCTION fn_notify_documento_rejeitado() RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'UPDATE' THEN
+    IF NEW.status_documento = 'rejeitado' AND (OLD.status_documento IS DISTINCT FROM NEW.status_documento) THEN
+      INSERT INTO notificacoes (id_cadastro, tipo_notificacao, titulo, mensagem, detalhes, destinatario_email, data_criacao)
+      VALUES (
+        NEW.id_cadastro,
+        'documento_rejeitado',
+        'Documento rejeitado',
+        COALESCE(NEW.motivo_rejeicao, 'Sem motivo especificado'),
+        jsonb_build_object('id_documento', NEW.id_documento, 'tipo_documento', NEW.tipo_documento),
+        NEW.enviado_por,
+        now()
+      );
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER trg_notify_doc_rejeitado
+  AFTER UPDATE ON cadastros_documentos
+  FOR EACH ROW EXECUTE FUNCTION fn_notify_documento_rejeitado();
+
+-- 22) Função para criar notificação quando cadastro é rejeitado ou aprovado
+CREATE OR REPLACE FUNCTION fn_notify_cadastro_status() RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'UPDATE' THEN
+    IF NEW.status_cadastro = 'rejeitado' AND (OLD.status_cadastro IS DISTINCT FROM NEW.status_cadastro) THEN
+      INSERT INTO notificacoes (id_cadastro, tipo_notificacao, titulo, mensagem, detalhes, destinatario_email, data_criacao)
+      VALUES (
+        NEW.id_cadastro,
+        'cadastro_rejeitado',
+        'Cadastro rejeitado',
+        COALESCE(NEW.motivo_rejeicao, 'Sem motivo especificado'),
+        jsonb_build_object('id_cadastro', NEW.id_cadastro),
+        NEW.criado_por,
+        now()
+      );
+    ELSIF NEW.status_cadastro = 'ativo' AND (OLD.status_cadastro IS DISTINCT FROM NEW.status_cadastro) THEN
+      INSERT INTO notificacoes (id_cadastro, tipo_notificacao, titulo, mensagem, detalhes, destinatario_email, data_criacao)
+      VALUES (
+        NEW.id_cadastro,
+        'cadastro_aprovado',
+        'Cadastro aprovado',
+        'Seu cadastro foi aprovado.',
+        jsonb_build_object('id_cadastro', NEW.id_cadastro),
+        NEW.criado_por,
+        now()
+      );
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER trg_notify_cadastro_status
+  AFTER UPDATE ON cadastros_clientes
+  FOR EACH ROW EXECUTE FUNCTION fn_notify_cadastro_status();
+
+-- 23) Optional helper: function to set current user (used by audit function)
+-- Your application can run: SELECT set_config('app.current_user', 'user@example.com', true);
+-- to record the user in the audit entries.
+-- (No trigger needed for this; it's controlled by the app)
+
+-- 24) Seed minimal data (opcional)
+INSERT INTO escritorios (id_escritorio, nome_escritorio, cnpj_escritorio, email_escritorio)
+  SELECT uuid_generate_v4(), 'Topo Escritório Demo', '00000000000191', 'contato@topoexemplo.com'
+  WHERE NOT EXISTS (SELECT 1 FROM escritorios);
+
+-- 25) Concessões e comentários finais
+-- Você pode querer ajustar: nomes de colunas, tamanhos de varchar, e constraints adicionais.
+-- Para performance em produção avalie adicionar: partial indexes, melhores colunas para RLS e políticas.
+
+-- 26) Exemplo de índices adicionais sugeridos
+CREATE INDEX IF NOT EXISTS idx_notificacoes_dest_email ON notificacoes(destinatario_email);
+CREATE INDEX IF NOT EXISTS idx_auditoria_cadastro ON auditoria(id_cadastro);
+
+-- Fim do script
